@@ -30,9 +30,14 @@ if __name__ == "__main__":
             default=False, help='filter stdin through normalizer for testing')
     parser.add_argument('-n', '--number', type=int, default=None,
             help='only consider the test with the given number')
+    parser.add_argument('-r', '--range', type=str, default=None,
+            help='only consider the test with numbers in the given range')
     parser.add_argument('--track', metavar='path',
             help='track which test cases pass/fail in the given JSON file and only report changes')
     args = parser.parse_args(sys.argv[1:])
+    if args.range:
+        low, high = args.range.split("-")
+        args.range = range(int(low), int(high)+1)
 
 def out(str):
     sys.stdout.buffer.write(str.encode('utf-8')) 
@@ -140,7 +145,7 @@ if __name__ == "__main__":
         pattern_re = re.compile(args.pattern, re.IGNORECASE)
     else:
         pattern_re = re.compile('.')
-    tests = [ test for test in all_tests if re.search(pattern_re, test['section']) and (not args.number or test['example'] == args.number) ]
+    tests = [ test for test in all_tests if re.search(pattern_re, test['section']) and (not args.number or test['example'] == args.number) and (not args.range or test['example'] in args.range) ]
     if args.dump_tests:
         out(json.dumps(tests, ensure_ascii=False, indent=2))
         exit(0)
